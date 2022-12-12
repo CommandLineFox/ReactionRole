@@ -1,0 +1,1 @@
+type MenuType = "one" | "multiple";
