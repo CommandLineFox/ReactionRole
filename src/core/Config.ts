@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "fs";
 export interface Config {
     token: string;
     id: string;
-    guild: string;
+    guild?: string;
     owners: string[];
     options: {
         disableMentions: "all" | "everyone" | "none";
