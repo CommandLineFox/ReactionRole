@@ -177,6 +177,11 @@ async function handleButtonInteraction(client: BotClient, interaction: ButtonInt
             }
         }
 
+        if (selectMenu.options.length === 0) {
+            await interaction.reply({ content: "There's no roles to remove.", ephemeral: true });
+            return;
+        }
+
         const selectMenuRow = new ActionRowBuilder<StringSelectMenuBuilder>({ components: [selectMenu] });
         await interaction.reply({ content: "Select the roles you want to remove from yourself", components: [selectMenuRow], ephemeral: true });
     }
