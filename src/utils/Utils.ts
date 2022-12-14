@@ -55,11 +55,12 @@ export async function createMessage(menu: RoleMenu, interaction: CommandInteract
         }
 
         selectMenu.addOptions({ label: role.name, emoji: emoji, value: menuRole.id });
-        if (menu.type === "multiple") {
-            selectMenu.setMaxValues(menu.roles.length);
-        } else {
-            selectMenu.setMaxValues(1);
-        }
+    }
+
+    if (menu.type === "multiple") {
+        selectMenu.setMaxValues(menu.roles.length);
+    } else {
+        selectMenu.setMaxValues(1);
     }
 
     const removeButton = new ButtonBuilder({ custom_id: generateInteractionName(menu.name) + "_button", label: "Remove specific roles", style: ButtonStyle.Secondary });

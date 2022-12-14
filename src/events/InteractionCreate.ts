@@ -170,11 +170,12 @@ async function handleButtonInteraction(client: BotClient, interaction: ButtonInt
             }
 
             selectMenu.addOptions({ label: role.name, emoji: emoji, value: menuRole.id });
-            if (menu.type === "multiple") {
-                selectMenu.setMaxValues(menu.roles.length);
-            } else {
-                selectMenu.setMaxValues(1);
-            }
+        }
+
+        if (menu.type === "multiple") {
+            selectMenu.setMaxValues(selectMenu.options.length);
+        } else {
+            selectMenu.setMaxValues(1);
         }
 
         if (selectMenu.options.length === 0) {
