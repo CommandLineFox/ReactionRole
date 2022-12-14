@@ -41,7 +41,7 @@ export function getEmoji(emoji: string, client: BotClient): string | null {
 }
 
 export async function createMessage(menu: RoleMenu, interaction: CommandInteraction, client: BotClient): Promise<MessageCreateOptions | string> {
-    const selectMenu = new StringSelectMenuBuilder({ custom_id: generateInteractionName(menu.name), placeholder: menu.description });
+    const selectMenu = new StringSelectMenuBuilder({ custom_id: generateInteractionName(menu.name) + "_add", placeholder: menu.description });
     for (const menuRole of menu.roles) {
         const role = await interaction.guild?.roles.fetch(menuRole.id);
         if (!role) {
@@ -62,9 +62,10 @@ export async function createMessage(menu: RoleMenu, interaction: CommandInteract
         }
     }
 
-    const button = new ButtonBuilder({ custom_id: generateInteractionName(menu.name) + "_button", label: "Remove all", style: ButtonStyle.Danger });
+    const removeButton = new ButtonBuilder({ custom_id: generateInteractionName(menu.name) + "_button", label: "Remove specific roles", style: ButtonStyle.Secondary });
+    const removeAllButton = new ButtonBuilder({ custom_id: generateInteractionName(menu.name) + "_allbutton", label: "Remove all roles", style: ButtonStyle.Danger });
     const selectMenuRow = new ActionRowBuilder<StringSelectMenuBuilder>({ components: [selectMenu] });
-    const buttonRow = new ActionRowBuilder<ButtonBuilder>({ components: [button] });
+    const buttonRow = new ActionRowBuilder<ButtonBuilder>({ components: [removeButton, removeAllButton] });
 
     return { content: menu.title, components: [selectMenuRow, buttonRow] } as MessageCreateOptions;
 }

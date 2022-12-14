@@ -1,8 +1,8 @@
-import { ButtonInteraction, CommandInteraction, Interaction, PermissionFlagsBits, Role, StringSelectMenuInteraction } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, CommandInteraction, Interaction, PermissionFlagsBits, Role, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
 import type { BotClient } from "../core/BotClient";
 import type Command from "../command/Command";
 import Event from "../event/Event";
-import { generateInteractionName } from "../utils/Utils";
+import { generateInteractionName, getEmoji } from "../utils/Utils";
 
 export default class InteractionCreate extends Event {
     public constructor() {
@@ -61,26 +61,48 @@ async function handleSelectMenuInteraction(client: BotClient, interaction: Strin
         return;
     }
 
-    const menu = guild.menus.find(menu => menu.message === interaction.message.id);
+    const menu = guild.menus.find(menu => menu.name.toLowerCase() === interaction.customId.substring(0, interaction.customId.lastIndexOf("_")).toLowerCase());
     if (!menu) {
         return;
     }
 
     const choices = interaction.values;
-    const list = [] as Role[];
-    for (const choice of choices) {
-        const role = await interaction.guild?.roles.fetch(choice);
-        if (!role) {
-            await client.database.guilds.updateOne({ id: interaction.guild?.id, "menus.name": generateInteractionName(menu.name) }, { "$pull": { "menus.$.roles": choice } });
-            continue;
+    if (interaction.customId.endsWith("_add")) {
+        const list = [] as Role[];
+        for (const choice of choices) {
+            const role = await interaction.guild?.roles.fetch(choice);
+            if (!role) {
+                await client.database.guilds.updateOne({ id: interaction.guild?.id, "menus.name": generateInteractionName(menu.name) }, { "$pull": { "menus.$.roles": choice } });
+                continue;
+            }
+
+            list.push(role);
         }
 
-        list.push(role);
-    }
+        const member = await interaction.guild.members.fetch(interaction.member.user.id);
+        await member.roles.add(list);
+        await interaction.reply({ content: "Added selected roles in this menu to your profile.", ephemeral: true });
+    } else if (interaction.customId.endsWith("_remove")) {
+        const list = [] as Role[];
+        for (const choice of choices) {
+            const role = await interaction.guild?.roles.fetch(choice);
+            if (!role) {
+                await client.database.guilds.updateOne({ id: interaction.guild?.id, "menus.name": generateInteractionName(menu.name) }, { "$pull": { "menus.$.roles": choice } });
+                continue;
+            }
 
-    const member = await interaction.guild.members.fetch(interaction.member.user.id);
-    await member.roles.add(list);
-    await interaction.reply({ content: "Added selected roles in this menu to your profile.", ephemeral: true });
+            list.push(role);
+        }
+
+        if (list.length === 0) {
+            await interaction.reply({ content: "There's no roles to remove.", ephemeral: true });
+            return;
+        }
+
+        const member = await interaction.guild.members.fetch(interaction.member.user.id);
+        await member.roles.remove(list);
+        await interaction.reply({ content: "Removed the selected roles from your profile.", ephemeral: true });
+    }
 }
 
 async function handleButtonInteraction(client: BotClient, interaction: ButtonInteraction): Promise<void> {
@@ -108,21 +130,56 @@ async function handleButtonInteraction(client: BotClient, interaction: ButtonInt
     }
 
     const member = await interaction.guild.members.fetch(interaction.member.user.id);
-    const list = [] as Role[];
-    for (const menuRole of menu.roles) {
-        const role = await interaction.guild?.roles.fetch(menuRole.id);
-        if (!role) {
-            await client.database.guilds.updateOne({ id: interaction.guild?.id, "menus.name": generateInteractionName(menu.name) }, { "$pull": { "menus.$.roles": menuRole } });
-            continue;
+    if (interaction.customId.endsWith("_allbutton")) {
+        const list = [] as Role[];
+        for (const menuRole of menu.roles) {
+            const role = await interaction.guild?.roles.fetch(menuRole.id);
+            if (!role) {
+                await client.database.guilds.updateOne({ id: interaction.guild?.id, "menus.name": generateInteractionName(menu.name) }, { "$pull": { "menus.$.roles": menuRole } });
+                continue;
+            }
+
+            if (member.roles.cache.has(role.id)) {
+                list.push(role);
+            }
         }
 
-        if (member.roles.cache.has(role.id)) {
-            list.push(role);
+        if (list.length === 0) {
+            await interaction.reply({ content: "There's no roles to remove.", ephemeral: true });
+            return;
         }
+
+        await member.roles.remove(list);
+        await interaction.reply({ content: "Removed all roles in this menu from your profile.", ephemeral: true });
+    } else if (interaction.customId.endsWith("_button")) {
+        const selectMenu = new StringSelectMenuBuilder({ custom_id: generateInteractionName(menu.name) + "_remove", placeholder: "Choose roles to remove" });
+        for (const menuRole of menu.roles) {
+            const role = await interaction.guild?.roles.fetch(menuRole.id);
+            if (!role) {
+                await client.database.guilds.updateOne({ id: interaction.guild?.id, "menus.name": menu.name }, { "$pull": { "menus.$.roles": menuRole } });
+                continue;
+            }
+
+            const emoji = getEmoji(menuRole.emoji, client);
+            if (!emoji) {
+                continue;
+            }
+
+            if (!member.roles.cache.has(role.id)) {
+                continue;
+            }
+
+            selectMenu.addOptions({ label: role.name, emoji: emoji, value: menuRole.id });
+            if (menu.type === "multiple") {
+                selectMenu.setMaxValues(menu.roles.length);
+            } else {
+                selectMenu.setMaxValues(1);
+            }
+        }
+
+        const selectMenuRow = new ActionRowBuilder<StringSelectMenuBuilder>({ components: [selectMenu] });
+        await interaction.reply({ content: "Select the roles you want to remove from yourself", components: [selectMenuRow], ephemeral: true });
     }
-
-    await member.roles.remove(list);
-    await interaction.reply({ content: "Removed all roles in this menu from your profile.", ephemeral: true });
 }
 
 function hasUserPermission(command: Command, interaction: CommandInteraction): boolean {

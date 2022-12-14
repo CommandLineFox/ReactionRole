@@ -60,7 +60,7 @@ export default class MenuRoleRemove extends Subcommand {
             await interaction.reply({ content: "The role menu doesn't include this role.", ephemeral: true });
             return;
         }
-        await client.database.guilds.updateOne({ id: guild.id }, { $set: { 'menus.$[menu].roles.$[role].emoji': emoji } }, { arrayFilters: [{ 'menu.roles': { $elemMatch: { id: '123' } } }, { 'role.id': '123' }] });
+        await client.database.guilds.updateOne({ id: guild.id }, { $set: { 'menus.$[menu].roles.$[role].emoji': emoji } }, { arrayFilters: [{ 'menu.roles': { $elemMatch: { id: role.id } } }, { 'role.id': role.id }] });
         await interaction.reply(`Successfully set ${role.name}'s emote to ${emoji}.`);
     }
 }
