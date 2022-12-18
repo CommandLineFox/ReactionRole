@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/CommandLineFox/ReactionRole#readme",
   "dependencies": {
-    "@discordjs/rest": "^1.4.0",
-    "discord-api-types": "^0.37.22",
+    "@discordjs/rest": "^1.5.0",
+    "discord-api-types": "^0.37.23",
     "discord.js": "^14.7.1",
     "moment": "^2.29.4",
     "mongodb": "^4.12.1",

@@ -14,7 +14,7 @@ export function checkEmoji(emoji: string, client: BotClient): string | null {
     }
 
     if (customMatch?.groups?.id) {
-        const clientEmoji = client.emojis.cache.get(customMatch.groups.id);
+        const clientEmoji = client.emojis.resolve(customMatch.groups.id);
         if (!clientEmoji) {
             return null;
         }
