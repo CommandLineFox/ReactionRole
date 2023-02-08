@@ -2,18 +2,17 @@ import type { CommandInteraction } from "discord.js";
 import Subcommand from "../../../../command/Subcommand";
 import type { BotClient } from "../../../../core/BotClient";
 
-export default class MenuEditType extends Subcommand {
+export default class MenuBlacklistAdd extends Subcommand {
     public constructor() {
-        super("type", "Edit a specified role menu's type");
+        super("add", "Add a role to a specified role menu's blacklist");
         this.data.addStringOption(option =>
             option.setName("name")
                 .setDescription("Name of the role menu to edit")
                 .setRequired(true)
         );
-        this.data.addStringOption(option =>
-            option.setName("type")
-                .setDescription("Whether one or multiple roles can be chosen")
-                .addChoices({ name: "One", value: "one" }, { name: "Multiple", value: "multiple" })
+        this.data.addRoleOption(option =>
+            option.setName("role")
+                .setDescription("The role to add")
                 .setRequired(true)
         );
     }
@@ -29,7 +28,7 @@ export default class MenuEditType extends Subcommand {
         }
 
         const name = interaction.options.getString("name", true);
-        const type = interaction.options.getString("type", true) as MenuType;
+        const role = interaction.options.getRole("role", true);
 
         const guild = await client.database.getGuild(interaction.guild.id);
         if (!guild) {
@@ -43,12 +42,12 @@ export default class MenuEditType extends Subcommand {
             return;
         }
 
-        if (menu.type === type) {
-            await interaction.reply({ content: "The type is already set to that.", ephemeral: true });
+        if (menu.blacklist && menu.blacklist.find(e => e === role.id)) {
+            await interaction.reply({ content: "The role menu already includes this role.", ephemeral: true });
             return;
         }
 
-        await client.database.guilds.updateOne({ id: guild.id, "menus.name": menu.name }, { "$set": { "menus.$.type": type } });
-        await interaction.reply(`Successfully updated ${name}'s description to ${type}.`);
+        await client.database.guilds.updateOne({ id: guild.id, "menus.name": menu.name }, { "$push": { "menus.$.blacklist": role.id } });
+        await interaction.reply(`Successfully added ${role.name} to ${name}'s blacklist.`);
     }
 }

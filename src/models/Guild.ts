@@ -11,6 +11,8 @@ export interface RoleMenu {
     type: MenuType;
     roles: ReactionRole[];
     message?: string;
+    whitelist?: string[];
+    blacklist?: string[];
 }
 
 export interface Guild {

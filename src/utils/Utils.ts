@@ -1,4 +1,4 @@
-import { type CommandInteraction, type MessageCreateOptions, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, type Guild, type TextChannel } from "discord.js";
+import { type CommandInteraction, type MessageCreateOptions, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, type Guild, type TextChannel, Role, GuildMember } from "discord.js";
 import type { BotClient } from "../core/BotClient";
 import type { RoleMenu } from "../models/Guild";
 
@@ -14,7 +14,7 @@ export function checkEmoji(emoji: string, client: BotClient): string | null {
     }
 
     if (customMatch?.groups?.id) {
-        const clientEmoji = client.emojis.resolve(customMatch.groups.id);
+        const clientEmoji = client.emojis.cache.get(customMatch.groups.id);
         if (!clientEmoji) {
             return null;
         }
@@ -115,4 +115,40 @@ export function listInformation(menu: RoleMenu): string {
 
 export function generateInteractionName(name: string): string {
     return name.toLowerCase().replaceAll(" ", "_");
+}
+
+export function getRoleNameList(roles: Role[]): string {
+    let names = "";
+    for (let i = 0; i < roles.length; i++) {
+        names += `**${roles[i]?.name}**`;
+
+        if (i < roles.length - 2) {
+            names += ", ";
+        } else if (i === roles.length - 2) {
+            names += " and ";
+        }
+    }
+
+    return names;
+}
+
+export function isWhiteListed(member: GuildMember, roleMenu: RoleMenu): boolean {
+    for (const [id, _] of member.roles.cache) {
+        if (roleMenu.whitelist?.includes(id)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+export function isBlacklisted(member: GuildMember, roleMenu: RoleMenu): boolean {
+    for (const [id, _] of member.roles.cache) {
+        if (roleMenu.blacklist?.includes(id)) {
+            return true;
+        }
+    }
+
+    return false;
 }
