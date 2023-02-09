@@ -133,6 +133,10 @@ export function getRoleNameList(roles: Role[]): string {
 }
 
 export function isWhiteListed(member: GuildMember, roleMenu: RoleMenu): boolean {
+    if (!roleMenu.whitelist || roleMenu.whitelist.length === 0) {
+        return true;
+    }
+
     for (const [id, _] of member.roles.cache) {
         if (roleMenu.whitelist?.includes(id)) {
             return true;
@@ -144,6 +148,10 @@ export function isWhiteListed(member: GuildMember, roleMenu: RoleMenu): boolean 
 
 
 export function isBlacklisted(member: GuildMember, roleMenu: RoleMenu): boolean {
+    if (!roleMenu.blacklist || roleMenu.blacklist.length === 0) {
+        return false;
+    }
+
     for (const [id, _] of member.roles.cache) {
         if (roleMenu.blacklist?.includes(id)) {
             return true;
