@@ -1,4 +1,4 @@
-import type { CommandInteraction, TextChannel } from "discord.js";
+import type { CommandInteraction, MessageEditOptions, TextChannel } from "discord.js";
 import Subcommand from "../../../command/Subcommand";
 import type { BotClient } from "../../../core/BotClient";
 import { createMessage } from "../../../utils/Utils";
@@ -57,7 +57,7 @@ export default class MenuUpdate extends Subcommand {
                         return;
                     }
 
-                    await message.edit(content);
+                    await message.edit(content as MessageEditOptions);
                     await interaction.reply(`Menu updated, you can find it [here](${message.url})`);
                 }
             }

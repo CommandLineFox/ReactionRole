@@ -84,8 +84,8 @@ export default class CommandHandler {
 
         (async () => {
             try {
-                const commands = this.client.commands.map(command => command.data.toJSON());
-                await rest.put(Routes.applicationGuildCommands(this.client.config.id, this.client.config.guild), { body: commands });
+                //const commands = this.client.commands.map(command => command.data.toJSON());
+                await rest.put(Routes.applicationGuildCommands(this.client.config.id, this.client.config.guild), { body: "" });
                 console.log('Reloaded commands');
             } catch (error) {
                 console.error(error);

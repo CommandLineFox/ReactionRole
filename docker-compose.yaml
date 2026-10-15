@@ -1,0 +1,16 @@
+services:
+  kyra:
+    build:
+      context: .
+    container_name: kyra
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/usr/src/app/config.json
+    environment:
+      - NODE_ENV=production
+    networks:
+      - shared-mongo-net
+
+networks:
+  shared-mongo-net:
+    external: true
